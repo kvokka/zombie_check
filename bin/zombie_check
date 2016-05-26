@@ -13,7 +13,7 @@ if ['-v', '--version'].include? ARGV[0]
 elsif ['-h', '--help'].include? ARGV[0]
   puts 'You can specify options with syntax like option_name:value'
   puts 'hosts_file   - file with list of all hosts'
-  puts "delay        - delay between pings\n\n"
+  puts "delay        - delay between pings in ms, default 5000 \n\n"
   exit 0
 end
 
