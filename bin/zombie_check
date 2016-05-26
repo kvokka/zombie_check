@@ -1,0 +1,27 @@
+#!/usr/bin/env ruby
+require 'pathname'
+require 'pry'
+
+source_path = (Pathname.new(__FILE__).dirname + '../lib').expand_path
+$LOAD_PATH << source_path
+
+require 'zombie_check'
+
+if ['-v', '--version'].include? ARGV[0]
+  puts "Version #{ZombieCheck::VERSION}"
+  exit 0
+elsif ['-h', '--help'].include? ARGV[0]
+  puts 'You can specify options with syntax like option_name:value'
+  puts 'hosts_file   - file with list of all hosts'
+  puts "delay        - delay between pings\n\n"
+  exit 0
+end
+
+options = {}.tap do |result|
+  ARGV.each do |argv|
+    split_args = argv.split ':'
+    result[split_args.first.to_sym] = split_args.last
+  end
+end
+
+ZombieCheck::Ping::Checker.new(options).start
