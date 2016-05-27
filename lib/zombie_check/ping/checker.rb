@@ -6,7 +6,7 @@ module ZombieCheck
 
       def initialize(options = {})
         @hosts_file ||= options[:hosts_file] || "hosts.txt"
-        @delay ||= (options[:delay].to_i || 1000) / 1000.0
+        @delay ||= (options[:delay] || 1000).to_i / 1000.0
         @hosts ||= []
         @report = CheckerReport.new
         setup_interruptor
@@ -14,31 +14,32 @@ module ZombieCheck
 
       def start
         puts "Using file #{hosts_file}, delay #{delay}, for exit press Ctrl+C"
-        begin
         loop do
           update_hosts!
-          @hosts.each do |h|
-            icmp = Net::Ping::ICMP.new(h)
-            icmp.ping
-            @report << icmp
+          @hosts.each { |host| Thread.new { ping host } }
+          if interrupted
+            exit_all_threads!
+            puts @report.generate
+            exit 0
           end
-          exit if interrupted
-          # sleep @delay
+          sleep @delay
         end
-      ensure
-        puts
-        puts "Summary will be here #{@report.generate}"
-      end
       end
 
-      def update_hosts!
-        check_file_exists! hosts_file_path
-        result = File.open(hosts_file_path, "r") { |f| f.readlines.map(&:chomp) }
-        check_result_not_empty! result
-        @hosts = result
+      def ping(host)
+        icmp = Net::Ping::ICMP.new(host)
+        icmp.ping
+        @report << icmp
       end
 
       private
+
+        def update_hosts!
+          check_file_exists! hosts_file_path
+          result = File.open(hosts_file_path, "r") { |f| f.readlines.map(&:chomp) }
+          check_result_not_empty! result
+          @hosts = result
+        end
 
         def check_file_exists!(file)
           return if File.exist?(file)
@@ -58,6 +59,10 @@ module ZombieCheck
 
         def setup_interruptor
           trap("INT") { @interrupted = true }
+        end
+
+        def exit_all_threads!
+          Thread.list.reject { |t| t == Thread.current }.each(&:exit)
         end
     end
   end

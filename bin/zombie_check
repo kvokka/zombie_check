@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 require 'pathname'
-require 'pry'
 
 source_path = (Pathname.new(__FILE__).dirname + '../lib').expand_path
 $LOAD_PATH << source_path
@@ -13,7 +12,7 @@ if ['-v', '--version'].include? ARGV[0]
 elsif ['-h', '--help'].include? ARGV[0]
   puts 'You can specify options with syntax like option_name:value'
   puts 'hosts_file   - file with list of all hosts'
-  puts "delay        - delay between pings in ms, default 5000 \n\n"
+  puts "delay        - delay between pings in ms, default 1000 \n\n"
   exit 0
 end
 

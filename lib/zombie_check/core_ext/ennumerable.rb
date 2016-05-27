@@ -10,14 +10,17 @@ module Enumerable
     sum / length.to_f
   end
 
-  def sample_variance
+  def sigma
     return -1 if length < 2
     m = mean
     sum = inject(0) { |accum, i| accum + (i - m)**2 }
-    sum / (length - 1).to_f
+    Math.sqrt(sum / (length - 1).to_f)
   end
 
-  def standard_deviation
-    sample_variance > 0 ? Math.sqrt(sample_variance) : -1
+  def median
+    return -1 if send(:length) == 0
+    middle = length / 2
+    sorted = sort
+    length.even? ? (sorted[middle] + sorted[middle - 1]) / 2 : sorted[middle]
   end
 end

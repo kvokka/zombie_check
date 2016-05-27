@@ -27,10 +27,11 @@ module ZombieCheck
             percentage = total > 0 ? log[:lost] / total : 0
 
             result << <<-REPORT
+
 To #{host} total sent #{total} pings, lost #{log[:lost]} (#{percentage}%). Time(ms):
 AVG #{log[:durations].mean.round(PRECISION)} MIN #{log[:durations].min} \
-MAX #{log[:durations].max} STD_VARIANCE #{log[:durations].sample_variance.round(PRECISION)} \
-STD_DEVIATION #{log[:durations].standard_deviation.round(PRECISION)}
+MAX #{log[:durations].max} sigma #{log[:durations].sigma.round(PRECISION)} \
+median #{log[:durations].median.round(PRECISION)}
         REPORT
           end
         end.join "\n"
