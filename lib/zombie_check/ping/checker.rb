@@ -6,23 +6,19 @@ module ZombieCheck
 
       def initialize(options = {})
         @hosts_file ||= options[:hosts_file] || "hosts.txt"
-        @delay ||= (options[:delay] || 1000).to_i / 1000.0
+        @delay ||= (options[:delay] || 1000).to_i
         @hosts ||= []
         @report = CheckerReport.new
         setup_interruptor
       end
 
       def start
-        puts "Using file #{hosts_file}, delay #{delay}, for exit press Ctrl+C"
+        puts "Using file #{hosts_file}, delay #{delay}ms, for exit press Ctrl+C"
         loop do
           update_hosts!
           @hosts.each { |host| Thread.new { ping host } }
-          if interrupted
-            exit_all_threads!
-            puts @report.generate
-            exit 0
-          end
-          sleep @delay
+          interrupted_exit! if interrupted
+          sleep @delay / 1000.0
         end
       end
 
@@ -63,6 +59,12 @@ module ZombieCheck
 
         def exit_all_threads!
           Thread.list.reject { |t| t == Thread.current }.each(&:exit)
+        end
+
+        def interrupted_exit!
+           exit_all_threads!
+            puts @report.generate
+            exit 0
         end
     end
   end

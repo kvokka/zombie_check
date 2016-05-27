@@ -1,37 +1,24 @@
 # frozen_string_literal: true
+require 'pry'
 module ZombieCheck
   module Ping
     class CheckerReport
-      PRECISION = 3
-      attr_accessor :stat
-
-      def initialize
-        @stat ||= {}
-      end
 
       def <<(ping)
-        host = @stat[ping.host] ||= {}
-        host[:durations] ||= []
-        host[:lost] ||= 0
-        if (ping_duration = ping.duration)
-          host[:durations] << (ping_duration * 1000).round(PRECISION)
-        else
-          host[:lost] += 1
-        end
+        HostStat.new(ping).store
       end
 
       def generate
         [].tap do |result|
-          stat.each_pair do |host, log|
-            total = log[:durations].size + log[:lost]
-            percentage = total > 0 ? log[:lost] / total : 0
-
+          HostStat.nodes.each_pair do |host, node|
+            total = node.durations.size + node.lost
+            percentage = total > 0 ? node.lost / total : 0
             result << <<-REPORT
 
-To #{host} total sent #{total} pings, lost #{log[:lost]} (#{percentage}%). Time(ms):
-AVG #{log[:durations].mean.round(PRECISION)} MIN #{log[:durations].min} \
-MAX #{log[:durations].max} sigma #{log[:durations].sigma.round(PRECISION)} \
-median #{log[:durations].median.round(PRECISION)}
+To #{host} total sent #{total} pings, lost #{node.lost} (#{percentage}%). Time(ms):
+AVG #{node.durations.mean.round(PRECISION)} MIN #{node.durations.min} \
+MAX #{node.durations.max} sigma #{node.durations.sigma.round(PRECISION)} \
+median #{node.durations.median.round(PRECISION)}
         REPORT
           end
         end.join "\n"
