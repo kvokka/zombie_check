@@ -2,12 +2,6 @@
 module ZombieCheck
   module Ping
     class HostStat
-      @nodes = {}
-
-      class<<self
-        attr_accessor :nodes
-      end
-
       attr_accessor :durations, :lost, :host
 
       def initialize(ping)
@@ -21,25 +15,12 @@ module ZombieCheck
         end
       end
 
-      def store
-        if stored?
-          stored.durations += durations
-          stored.lost += lost
-        else
-          self.class.nodes[host] = self
-        end
-      end
-
       def stored?
         stored ? true : false
       end
 
       def stored
-        self.class.nodes[host]
-      end
-
-      def hash
-        host.hash
+        CheckerReport.nodes[host]
       end
     end
   end

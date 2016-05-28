@@ -6,7 +6,7 @@ describe ZombieCheck do
     expect(ZombieCheck::VERSION).not_to be nil
   end
 
-  describe "Enumerable extension" do
+  describe Enumerable do
     context "good data" do
       it "#sum" do
         expect((1..100).to_a.sum).to eq(5050)
@@ -35,9 +35,9 @@ describe ZombieCheck do
   end
 
   describe ZombieCheck::Ping::HostStat do
-    context "single package"
+    subject { ZombieCheck::Ping::HostStat }
     context "lost package" do
-      let(:host_stat) { ZombieCheck::Ping::HostStat.new FakePing.new(lost: true) }
+      let(:host_stat) { subject.new FakePing.new(lost: true) }
       it "creates stat instance with lost package" do
         expect(host_stat.lost).to eq 1
       end
@@ -48,7 +48,7 @@ describe ZombieCheck do
     end
 
     context "delivered package" do
-      let(:host_stat) { ZombieCheck::Ping::HostStat.new FakePing.new }
+      let(:host_stat) { subject.new FakePing.new }
       it "creates stat instance delivered package" do
         expect(host_stat.lost).to eq 0
       end
@@ -57,22 +57,25 @@ describe ZombieCheck do
         expect(host_stat.durations.length).to eq 1
       end
     end
+  end
 
+  describe ZombieCheck::Ping::CheckerReport do
+    subject { ZombieCheck::Ping::CheckerReport }
     context "send many pings" do
       before(:context) do
         @hosts = []
         10.times do
-          ZombieCheck::Ping::HostStat.new(ping = FakePing.new).store
+          ZombieCheck::Ping::CheckerReport.store ZombieCheck::Ping::HostStat.new(ping = FakePing.new)
           @hosts << ping.host
         end
       end
 
       it "check host count" do
-        expect(ZombieCheck::Ping::HostStat.nodes.length).to eq 10
+        expect(subject.nodes.length).to eq 10
       end
 
       it "check host names in report" do
-        expect(ZombieCheck::Ping::HostStat.nodes.keys).to match_array @hosts
+        expect(subject.nodes.keys).to match_array @hosts
       end
     end
   end
