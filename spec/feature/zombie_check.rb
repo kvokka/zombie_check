@@ -5,7 +5,7 @@ RSpec.describe "Test whole app" do
   context "no arguments" do
     # let(:stdout) { run_zombie_check }
     # STD net-ping timeout is 5, so we'll catch lost
-    before(:context) { @stdout = run_zombie_check 6 }
+    before(:context) { @stdout = run_zombie_check ttl: 6 }
 
     it "should include report on start" do
       expect(@stdout).to match(/To 127.0.0.1 total sent \d+ pings/)
@@ -25,7 +25,7 @@ RSpec.describe "Test whole app" do
   end
 
   context "making the delay 10ms" do
-    before(:context) { @stdout = run_zombie_check 3, "delay:10" }
+    before(:context) { @stdout = run_zombie_check ttl: 3, params: "delay:10" }
 
     it "Sent package cound should be different" do
       expect(@stdout.scan(/total sent (\d+)/).uniq).to_not eq 1
@@ -33,12 +33,30 @@ RSpec.describe "Test whole app" do
   end
 
   context "use custom hosts file" do
-    before(:context) { create_fake_hosts_file }
-    before(:context) { @stdout = run_zombie_check 3, "hosts_file:fake_hosts.txt" }
+    before(:context) { create_fake_hosts_file ["127.0.0.1", "vk.com"] }
+    before(:context) { @stdout = run_zombie_check ttl: 3, params: "hosts_file:fake_hosts.txt" }
     after(:context) { remove_fake_hosts_file }
 
     it "Apply own hosts file" do
       expect(@stdout).to match(/To vk.com total sent \d+ pings/)
+    end
+  end
+
+  context "Hosts file is empty" do
+    before(:context) { create_fake_hosts_file "" }
+    before(:context) { @stdout = run_zombie_check params: "hosts_file:fake_hosts.txt" }
+    after(:context) { remove_fake_hosts_file }
+
+    it "Exit on start" do
+      expect(@stdout).to match(/fake_hosts.txt is empty/)
+    end
+  end
+
+  context "No hosts file" do
+    before(:context) { @stdout = run_zombie_check params: "hosts_file:fake_hosts.txt" }
+
+    it "Exit on start" do
+      expect(@stdout).to match(/No fake_hosts.txt file/)
     end
   end
 end

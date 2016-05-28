@@ -1,20 +1,23 @@
 # frozen_string_literal: true
 require "open3"
 module ApplicationTestHelper
-  def run_zombie_check(ttl = 3, args = "")
+  def run_zombie_check(options = {})
     Dir.chdir(root_path) do
       captured_stdout = ""
-      Open3.popen3("#{zombie_bin} #{args}") do |_stdin, stdout, _stderr, wait_thr|
-        sleep ttl
-        Process.kill("INT", wait_thr.pid)
+      ttl = options[:ttl]
+      Open3.popen3("#{zombie_bin} #{options[:params]}") do |_stdin, stdout, _stderr, wait_thr|
+        if ttl
+          sleep ttl
+          Process.kill("INT", wait_thr.pid)
+        end
         captured_stdout = stdout.read
       end
     end
   end
 
-  def create_fake_hosts_file
+  def create_fake_hosts_file(content)
     File.open(fake_hosts_path, "a") do |file|
-      file.write ["127.0.0.1", "vk.com"].join("\n")
+      file.write(content.is_a?(Array) ? content.join("\n") : content)
     end
   end
 
