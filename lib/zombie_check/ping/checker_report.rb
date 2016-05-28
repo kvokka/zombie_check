@@ -1,9 +1,8 @@
 # frozen_string_literal: true
-require 'pry'
+require "pry"
 module ZombieCheck
   module Ping
     class CheckerReport
-
       def <<(ping)
         HostStat.new(ping).store
       end
@@ -12,7 +11,7 @@ module ZombieCheck
         [].tap do |result|
           HostStat.nodes.each_pair do |host, node|
             total = node.durations.size + node.lost
-            percentage = total > 0 ? node.lost / total : 0
+            percentage = total > 0 ? (node.lost.to_f / total * 100).round(PRECISION) : 0
             result << <<-REPORT
 
 To #{host} total sent #{total} pings, lost #{node.lost} (#{percentage}%). Time(ms):

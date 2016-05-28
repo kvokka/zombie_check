@@ -62,9 +62,9 @@ module ZombieCheck
         end
 
         def interrupted_exit!
-           exit_all_threads!
-            puts @report.generate
-            exit 0
+          exit_all_threads!
+          puts @report.generate
+          exit 0
         end
     end
   end
