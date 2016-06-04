@@ -3,12 +3,14 @@ module ZombieCheck
   module Ping
     class Checker
       attr_accessor :hosts_file, :delay, :hosts, :report, :interrupted
+      attr_reader :tool
 
       def initialize(options = {})
         @hosts_file ||= options[:hosts_file] || "hosts.txt"
         @delay ||= (options[:delay] || 1000).to_i
         @hosts ||= []
-        @report = CheckerReport.new
+        @report ||= CheckerReport.new
+        @tool ||= options[:tool] || "unix_ping"
         setup_interruptor
       end
 
@@ -23,12 +25,15 @@ module ZombieCheck
       end
 
       def ping(host)
-        icmp = Net::Ping::ICMP.new(host)
-        icmp.ping
-        @report << icmp
+        response = sender_class.send(:new, host).send
+        @report << response
       end
 
       private
+
+        def sender_class
+          Object.const_get "ZombieCheck::Ping::#{tool.camel_case}"
+        end
 
         def update_hosts!
           check_file_exists! hosts_file_path
